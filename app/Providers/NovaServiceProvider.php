@@ -2,9 +2,14 @@
 
 namespace App\Providers;
 
+use App\Nova\CustomTab;
 use Illuminate\Support\Facades\Gate;
 use Laravel\Nova\Nova;
 use Laravel\Nova\NovaApplicationServiceProvider;
+use Laravel\Nova\Dashboard;
+use Laravel\Nova\Events\ServingNova;
+use App\Nova\Floor;
+use App\Nova\Room;
 
 class NovaServiceProvider extends NovaApplicationServiceProvider
 {
@@ -16,6 +21,11 @@ class NovaServiceProvider extends NovaApplicationServiceProvider
     public function boot()
     {
         parent::boot();
+        Nova::serving(static function (ServingNova $event): void {
+            Nova::remoteScript(asset('form.js'));
+            Nova::remoteScript(asset('https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js'));
+        });
+        
     }
 
     /**
@@ -55,7 +65,6 @@ class NovaServiceProvider extends NovaApplicationServiceProvider
     protected function dashboards()
     {
         return [
-            new \App\Nova\Dashboards\Main,
         ];
     }
 
@@ -67,7 +76,7 @@ class NovaServiceProvider extends NovaApplicationServiceProvider
     public function tools()
     {
 	    return [
-	    new CustomTab(),
+            new CustomTab(),
 	    ];
     }
 
@@ -78,6 +87,9 @@ class NovaServiceProvider extends NovaApplicationServiceProvider
      */
     public function register()
     {
-        //
+        Nova::resources([
+            Floor::class,
+            Room::class
+        ]);
     }
 }

@@ -1,4 +1,5 @@
 <form action="/api/process" method="post" name="editProjectForm">
+
 	<div id="hidden1">
 		<p align="center">Основные свойства</p>
 		<table width="500px" align="center">

@@ -2,16 +2,27 @@
     "name": "laravel/laravel",
     "type": "project",
     "description": "The skeleton application for the Laravel framework.",
-    "keywords": ["laravel", "framework"],
+    "keywords": [
+        "laravel",
+        "framework"
+    ],
     "license": "MIT",
     "require": {
         "php": "^8.0",
+        "ebess/advanced-nova-media-library": "^4.1",
         "guzzlehttp/guzzle": "^7.2",
+        "handleglobal/nova-nested-form": "dev-master",
+        "interaction-design-foundation/nova-html-card": "^3.1",
+        "joshmoreno/nova-html-field": "^0.1.0",
         "laravel/framework": "^10.0",
         "laravel/nova": "~4.0",
         "laravel/sanctum": "^3.2",
         "laravel/tinker": "^2.8",
-        "rap2hpoutre/fast-excel": "^5.2"
+        "outl1ne/nova-simple-repeatable": "^2.1",
+        "rap2hpoutre/fast-excel": "^5.2",
+        "twbs/bootstrap": "5.3.0",
+        "vyuldashev/nova-permission": "^3.2",
+        "yassi/nova-nested-form": "^3.0"
     },
     "require-dev": {
         "fakerphp/faker": "^1.9.1",
@@ -68,6 +79,22 @@
         "nova": {
             "type": "composer",
             "url": "https://nova.laravel.com"
+        },
+        "0": {
+            "type": "path",
+            "url": "./nova-components/CustomTab"
+        },
+        "1": {
+            "type": "path",
+            "url": "./nova-components/CustomTab"
+        },
+        "2": {
+            "type": "path",
+            "url": "./nova-components/DesignForm"
+        },
+        "3": {
+            "type": "path",
+            "url": "./nova-components/DesignForm"
         }
     }
 }
