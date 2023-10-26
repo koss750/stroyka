@@ -22,14 +22,14 @@ class Design extends Model implements HasMedia
 	protected $table = 'designs';
 
 	protected $casts = [
-	    'floors[]' => 'JSON',
-	    'skatlist[]' => 'JSON',
-	    'stropList[]' => 'JSON',
-        'endovList[]' => 'JSON',
-        'metaList[]' => 'JSON',
-        'krovlaList[]' => 'JSON',
-        'pvParts[]' => 'JSON', // or 'object' if you prefer
-        'mvParts[]' => 'JSON' // or 'object' if you prefer
+	    'floorsList' => 'json',
+	    'skatList' => 'json',
+	    'stropList' => 'json',
+        'endovList' => 'json',
+        'metaList' => 'json',
+        'krovlaList' => 'json',
+        'pvParts' => 'json', // or 'object' if you prefer
+        'mvParts' => 'json' // or 'object' if you prefer
     ];
     
     
@@ -44,12 +44,25 @@ class Design extends Model implements HasMedia
     $this->addMediaConversion('thumb')
         ->width(130)
         ->height(130);
+    $this->addMediaConversion('mild')
+        ->width(1000)
+        ->height(2000);
 }
 
 public function registerMediaCollections(): void
 {
     $this->addMediaCollection('main')->singleFile();
     $this->addMediaCollection('my_multi_collection');
+}
+
+public function getShortDescriptionAttribute()
+{
+        return $this->meta->short_description;
+}
+
+public function setShortDescriptionAttribute($values)
+{
+        $this->meta->short_description = $values;
 }
     
 }

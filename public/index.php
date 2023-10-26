@@ -55,3 +55,9 @@ $response = $kernel->handle(
 )->send();
 
 $kernel->terminate($request, $response);
+
+ini_set('memory_limit','2024M');
+    ini_set('post_max_size','2024M');
+    ini_set('upload_max_filesize','2024M');
+    ini_set('max_input_time', 36000); // 10 houres
+    set_time_limit(36000);

@@ -12,8 +12,28 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-        // $schedule->command('inspire')->hourly();
-    }
+    // Every 30 minutes during the night
+    $schedule->command('call:exchange-rate-controller')
+             ->timezone('Europe/London') // replace with your timezone
+             ->everyThirtyMinutes()
+             ->between('0:00', '8:00');
+
+    // Every 10 minutes during the day on weekdays
+    $schedule->command('call:exchange-rate-controller')
+             ->timezone('Europe/London') // replace with your timezone
+             ->everyTenMinutes()
+             ->between('8:00', '24:00')
+             ->weekdays();
+
+    // Every 90 minutes during weekends
+    $schedule->command('call:exchange-rate-controller')
+             ->timezone('Europe/London') // replace with your timezone
+             ->hourly()
+             ->weekends();
+             
+    $schedule->command('app:store-daily-average-rates')
+              ->dailyAt('19:59');
+}
 
     /**
      * Register the commands for the application.

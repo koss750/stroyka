@@ -72,8 +72,7 @@ class DesignController extends Controller
         // Save the design to the database
         $design->save();
         
-        // Upload and save the associated images
-        echo var_dump($request);
+        // Upload and save the associated imagesy
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $image) {
                 $path = $image->store('images', 'public');

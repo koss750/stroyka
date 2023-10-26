@@ -15,14 +15,14 @@ class UpdateDesignsFields extends Migration
     {
         Schema::table('designs', function (Blueprint $table) {
             $table->string('category')->nullable();
-            $table->integer('size')->nullable();
+            $table->decimal('size')->nullable();
             $table->integer('mMetrics')->nullable();
             $table->decimal('length')->nullable();
             $table->decimal('width')->nullable();
             $table->string('code')->nullable();
             $table->integer('numOrders')->nullable();
             $table->string('materialType')->nullable();
-            $table->string('floorsList')->nullable();
+            $table->text('floorsList')->nullable();
             $table->string('baseType')->nullable();
             $table->string('roofType')->nullable();
             $table->decimal('roofSquare')->nullable();
@@ -93,8 +93,6 @@ class UpdateDesignsFields extends Migration
             $table->string('srAeroSkat')->nullable();
             $table->string('srUtep150')->nullable();
             $table->string('srUtep200')->nullable();
-            $table->string('pvParts')->nullable();
-            $table->string('mvParts')->nullable();
             $table->string('lfLength')->nullable();
             $table->string('lfAngleG')->nullable();
             $table->string('lfAngleT')->nullable();
@@ -108,6 +106,30 @@ class UpdateDesignsFields extends Migration
             $table->string('meta2')->nullable();
             $table->string('meta3')->nullable();
             $table->string('meta4')->nullable();
+            $table->decimal('pvPart1')->nullable();
+            $table->decimal('pvPart2')->nullable();
+            $table->decimal('pvPart3')->nullable();
+            $table->decimal('pvPart4')->nullable();
+            $table->decimal('pvPart5')->nullable();
+            $table->decimal('pvPart6')->nullable();
+            $table->decimal('pvPart7')->nullable();
+            $table->decimal('pvPart8')->nullable();
+            $table->decimal('pvPart9')->nullable();
+            $table->decimal('pvPart10')->nullable();
+            $table->decimal('pvPart11')->nullable();
+            $table->decimal('pvPart12')->nullable();
+            $table->decimal('mvPart1')->nullable();
+            $table->decimal('mvPart2')->nullable();
+            $table->decimal('mvPart3')->nullable();
+            $table->decimal('mvPart4')->nullable();
+            $table->decimal('mvPart5')->nullable();
+            $table->decimal('mvPart6')->nullable();
+            $table->decimal('mvPart7')->nullable();
+            $table->decimal('mvPart8')->nullable();
+            $table->decimal('mvPart9')->nullable();
+            $table->decimal('mvPart10')->nullable();
+            $table->decimal('mvPart11')->nullable();
+            $table->decimal('mvPart12')->nullable();
         });
     }
 
@@ -198,8 +220,32 @@ class UpdateDesignsFields extends Migration
                 'srAeroSkat',
                 'srUtep150',
                 'srUtep200',
-                'pvParts',
-                'mvParts',
+                'pvPart1',
+                'pvPart2',
+                'pvPart3',
+                'pvPart4',
+                'pvPart5',
+                'pvPart6',
+                'pvPart7',
+                'pvPart8',
+                'pvPart9',
+                'pvPart10',
+                'pvPart11',
+                'pvPart12',
+                'mvPart1',
+                'mvPart2',
+                'mvPart3',
+                'mvPart4',
+                'mvPart5',
+                'mvPart6',
+                'mvPart7',
+                'mvPart8',
+                'mvPart9',
+                'mvPart10',
+                'mvPart11',
+                'mvPart12',
+                'pvPart13',
+                'mvPart13',
                 'lfLength',
                 'lfAngleG',
                 'lfAngleT',

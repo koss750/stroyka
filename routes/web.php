@@ -1,6 +1,8 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ExchangeRateController;
+use App\Http\Controllers\DailyAverageRateController;
 
 /*
 |--------------------------------------------------------------------------
@@ -16,3 +18,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('welcome');
 });
+
+Route::get('/forex', [ExchangeRateController::class, 'index']);
+Route::get('/forex-day', [DailyAverageRateController::class, 'index']);
+
