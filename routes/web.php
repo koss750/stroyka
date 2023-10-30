@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\DesignController;
 use App\Http\Controllers\ExchangeRateController;
 use App\Http\Controllers\DailyAverageRateController;
 
@@ -20,5 +21,6 @@ Route::get('/', function () {
 });
 
 Route::get('/forex', [ExchangeRateController::class, 'index']);
+Route::get('/export', [DesignController::class, 'exportAll']);
 Route::get('/forex-day', [DailyAverageRateController::class, 'index']);
 
