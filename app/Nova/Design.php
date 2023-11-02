@@ -3,6 +3,7 @@
 namespace App\Nova;
 
 use Illuminate\Http\Request;
+use App\Http\Controllers\DesignController;
 use Laravel\Nova\Fields\ID;
 use Laravel\Nova\Fields\Text;
 use Laravel\Nova\Fields\Textarea;
@@ -27,6 +28,7 @@ use Laravel\Nova\Card;
 use Laravel\Nova\Panel;
 use Outl1ne\NovaSimpleRepeatable\SimpleRepeatable;
 use HasTranslations;
+use Maatwebsite\LaravelNovaExcel\Actions\DownloadExcel;
 
 class Design extends Resource
 {
@@ -45,6 +47,45 @@ class Design extends Resource
     
     private function translateCode($cat,$key) {
         return $this->translatedSelects($cat)[$key] ?? null;
+    }
+    
+    private function formatJson($jsonValue, $overrides=false) {
+        
+                $jsonValue = json_decode(json_encode($jsonValue), true);
+                if (is_array($jsonValue)) {
+                    $formattedValue = [];
+                    foreach ($jsonValue as $floorData) {
+                        $formattedFloor = [];
+                        foreach ($floorData as $propKey => $propVal) {
+                            if ($overrides == true) $propKey = "quantity";
+                            $formattedFloor[] = $this->translateKey($propKey) . ': ' . $propVal;
+                        }
+                        $formattedValue[] = '--- ' . implode(', ', $formattedFloor);
+                    }
+                    $formattedValue = implode(' || ', $formattedValue);
+                } else {
+                    $formattedValue = [];
+                }
+                
+                return $formattedValue;
+        
+    }
+    
+    /**
+     * Get the actions available for the resource.
+     *
+     * @param  \Illuminate\Http\Request $request
+     *
+     * @return array
+     */
+    public function actions(Request $request)
+    {
+        
+        $controller = new DesignController;
+        $headers = $controller->getHeaders();
+        return [
+            (new DownloadExcel)->withHeadings(),
+        ];
     }
     
     public function trimZero($value) {
@@ -143,7 +184,7 @@ class Design extends Resource
 
     public function fields(Request $request)
     {
-  
+        $controller = new DesignController;
         return [
             ID::make()->sortable()->hide(),
             
@@ -163,36 +204,36 @@ class Design extends Resource
                 Select::make(__('Category'), 'category')->options($this->translatedSelects("category"))->onlyOnForms(),
                 
                 //size (Площадь)
-                Text::make($this->translateKey('size'), 'size')->onlyOnForms()->hideFromIndex(),
+                Text::make($this->translateKey('size'), 'size')->onlyOnForms()->hideFromIndex()->showOnExport(),
                 Number::make($this->translateKey('size'), 'size')->sortable()->displayUsing(function ($value) {
                     return (float)($value);
                 })->exceptOnForms(),
                 
                 //length
-                Text::make($this->translateKey('length'), 'length')->onlyOnForms()->hideFromIndex(),
+                Text::make($this->translateKey('length'), 'length')->onlyOnForms()->hideFromIndex()->showOnExport(),
                 Number::make($this->translateKey('length'), 'length')->sortable()->displayUsing(function ($value) {
                     return (float)($value);
-                })->exceptOnForms()->hideFromIndex(),
+                })->exceptOnForms()->hideFromIndex()->showOnExport(),
                 //width
-                Text::make($this->translateKey('width'), 'width')->onlyOnForms()->hideFromIndex(),
+                Text::make($this->translateKey('width'), 'width')->onlyOnForms()->hideFromIndex()->showOnExport(),
                 Number::make($this->translateKey('width'), 'width')->displayUsing(function ($value) {
                     return (float)($value);
-                })->exceptOnForms()->hideFromIndex(),
+                })->exceptOnForms()->hideFromIndex()->showOnExport(),
                 
-                Text::make($this->translateKey('code'), 'code')->hideFromIndex(),
-                Text::make($this->translateKey('numOrders'), 'numOrders')->hideFromIndex(),
-                Select::make(__('materialType'), 'materialType')->options($this->translatedSelects("materialType"))->hideFromIndex(),
-                Select::make(__('baseType'), 'baseType')->options($this->translatedSelects("baseType"))->hideFromIndex(),
-                //Text::make($this->translateKey('baseType'), 'baseType')->exceptOnForms()->hideFromIndex(),
+                Text::make($this->translateKey('code'), 'code')->hideFromIndex()->showOnExport(),
+                Text::make($this->translateKey('numOrders'), 'numOrders')->hideFromIndex()->showOnExport(),
+                Select::make(__('materialType'), 'materialType')->options($this->translatedSelects("materialType"))->hideFromIndex()->showOnExport(),
+                Select::make(__('baseType'), 'baseType')->options($this->translatedSelects("baseType"))->hideFromIndex()->showOnExport(),
+                //Text::make($this->translateKey('baseType'), 'baseType')->exceptOnForms()->hideFromIndex()->showOnExport(),
                 //Text::make($this->translateKey('roofType'), 'roofType'),
-                Text::make($this->translateKey('roofSquare'), 'roofSquare')->hideFromIndex(),
-                Text::make($this->translateKey('mainSquare'), 'mainSquare')->hideFromIndex(),
-                Text::make($this->translateKey('baseLength'), 'baseLength')->hideFromIndex(),
-                Text::make($this->translateKey('baseD20'), 'baseD20')->hideFromIndex(),
-                Text::make($this->translateKey('baseD20F'), 'baseD20F')->hideFromIndex(),
-                Text::make($this->translateKey('baseD20Rub'), 'baseD20Rub')->hideFromIndex(),
-                Text::make($this->translateKey('baseD20RubF'), 'baseD20RubF')->hideFromIndex(),
-                Text::make($this->translateKey('baseBalk1'), 'baseBalk1')->hideFromIndex(),
+                Text::make($this->translateKey('roofSquare'), 'roofSquare')->hideFromIndex()->showOnExport(),
+                Text::make($this->translateKey('mainSquare'), 'mainSquare')->hideFromIndex()->showOnExport(),
+                Text::make($this->translateKey('baseLength'), 'baseLength')->hideFromIndex()->showOnExport(),
+                Text::make($this->translateKey('baseD20'), 'baseD20')->hideFromIndex()->showOnExport(),
+                Text::make($this->translateKey('baseD20F'), 'baseD20F')->hideFromIndex()->showOnExport(),
+                Text::make($this->translateKey('baseD20Rub'), 'baseD20Rub')->hideFromIndex()->showOnExport(),
+                Text::make($this->translateKey('baseD20RubF'), 'baseD20RubF')->hideFromIndex()->showOnExport(),
+                Text::make($this->translateKey('baseBalk1'), 'baseBalk1')->hideFromIndex()->showOnExport(),
                 ]),
                 
             Panel::make('Помещения', [
@@ -241,19 +282,21 @@ class Design extends Resource
                     ]),
                     Text::make("Ширина", "width"),
                     Text::make("Длина", "length"),
-                    ])
+                    ]),
                   
                     //NestedForm::make('Rooms'),
-                
                 ]),
-            
+                
+            Text::make('floorsList', fn () => $this->formatJson($this->floorsList))
+                ->onlyOnExport(),
+                    
             Panel::make('Стены и перерубы', [
                 
-                Text::make($this->translateKey('wallsOut'), 'wallsOut')->hideFromIndex(),
-                Text::make($this->translateKey('wallsIn'), 'wallsIn')->hideFromIndex(),
-                Text::make($this->translateKey('wallsPerOut'), 'wallsPerOut')->hideFromIndex(),
-                Text::make($this->translateKey('wallsPerIn'), 'wallsPerIn')->hideFromIndex(),
-                Text::make($this->translateKey('rubRoof'), 'rubRoof')->hideFromIndex(),
+                Text::make($this->translateKey('wallsOut'), 'wallsOut')->hideFromIndex()->showOnExport(),
+                Text::make($this->translateKey('wallsIn'), 'wallsIn')->hideFromIndex()->showOnExport(),
+                Text::make($this->translateKey('wallsPerOut'), 'wallsPerOut')->hideFromIndex()->showOnExport(),
+                Text::make($this->translateKey('wallsPerIn'), 'wallsPerIn')->hideFromIndex()->showOnExport(),
+                Text::make($this->translateKey('rubRoof'), 'rubRoof')->hideFromIndex()->showOnExport(),
                 
                 ]),
                 
@@ -267,9 +310,13 @@ class Design extends Resource
                   ->addRowLabel("+ скат"),
             ]),
             
+            Text::make($this->translateKey('skatLabel'), fn () => $this->formatJson($this->skatList))
+                ->onlyOnExport(),
+            
+            
             Panel::make('Пирог кровли', [
                 
-                Text::make($this->translateKey('stropValue'), 'stropValue')->hideFromIndex(),
+                Text::make($this->translateKey('stropValue'), 'stropValue')->hideFromIndex()->showOnExport(),
                 ]),
                 
             Panel::make('Стропила', [
@@ -282,6 +329,9 @@ class Design extends Resource
                   ->addRowLabel("+ стропила"),
             ]),
             
+            Text::make($this->translateKey('stropLabel'), fn () => $this->formatJson($this->stropList, true))
+                ->onlyOnExport(),
+            
             Panel::make('Ендовы', [
                 SimpleRepeatable::make($this->translateKey('endovLable'), 'endovList', [
                 Text::make("Скаты, шт	", "quantity"),
@@ -292,6 +342,9 @@ class Design extends Resource
                   ->addRowLabel("+ ендовы"),
             ]),
             
+             Text::make($this->translateKey('endovLable'), fn () => $this->formatJson($this->endovList))
+                ->onlyOnExport(),
+            
             Panel::make('Кровля из металлочерепицы', [
                 SimpleRepeatable::make($this->translateKey('metaLabel'), 'metaList', [
                 Text::make("Длина листа", "width"),
@@ -299,60 +352,63 @@ class Design extends Resource
               ])
                   ->canAddRows(true) // Optional, true by default
                   ->canDeleteRows(true)
-                  ->addRowLabel("+ лист"),
-                
-        Text::make($this->translateKey('srKonShir'), 'srKonShir')->hideFromIndex(),
-        Text::make($this->translateKey('srKonOneSkat'), 'srKonOneSkat')->hideFromIndex(),
-        Text::make($this->translateKey('srPlanVetr'), 'srPlanVetr')->hideFromIndex(),
-        Text::make($this->translateKey('srPlanK'), 'srPlanK')->hideFromIndex(),
-        Text::make($this->translateKey('srKapelnik'), 'srKapelnik')->hideFromIndex(),
-        Text::make($this->translateKey('srEndn'), 'srEndn')->hideFromIndex(),
-        Text::make($this->translateKey('srEndv'), 'srEndv')->hideFromIndex(),
-        Text::make($this->translateKey('mrSam35'), 'mrSam35')->hideFromIndex(),
-        Text::make($this->translateKey('srSam70'), 'srSam70')->hideFromIndex(),
-        Text::make($this->translateKey('srPack'), 'srPack')->hideFromIndex(),
-        Text::make($this->translateKey('srIzospanAM'), 'srIzospanAM')->hideFromIndex(),
-        Text::make($this->translateKey('srIzospanAM35'), 'srIzospanAM35')->hideFromIndex(),
-        Text::make($this->translateKey('srLenta'), 'srLenta')->hideFromIndex(),
-        Text::make($this->translateKey('srRokvul'), 'srRokvul')->hideFromIndex(),
-        Text::make($this->translateKey('srIzospanB'), 'srIzospanB')->hideFromIndex(),
-        Text::make($this->translateKey('srIzospanB35'), 'srIzospanB35')->hideFromIndex(),
-        Text::make($this->translateKey('srPrimUgol'), 'srPrimUgol')->hideFromIndex(),
-        Text::make($this->translateKey('srPrimNakl'), 'srPrimNakl')->hideFromIndex(),
-        Text::make($this->translateKey('srUtep150'), 'srUtep150')->hideFromIndex(),
-        Text::make($this->translateKey('srUtep200'), 'srUtep200')->hideFromIndex(),
+                  ->addRowLabel("+ лист"),       
+                  
+            Text::make($this->translateKey('metaLabel'), fn () => $this->formatJson($this->metaList))
+                ->onlyOnExport(),
+            
+        Text::make($this->translateKey('srKonShir'), 'srKonShir')->hideFromIndex()->showOnExport(),
+        Text::make($this->translateKey('srKonOneSkat'), 'srKonOneSkat')->hideFromIndex()->showOnExport(),
+        Text::make($this->translateKey('srPlanVetr'), 'srPlanVetr')->hideFromIndex()->showOnExport(),
+        Text::make($this->translateKey('srPlanK'), 'srPlanK')->hideFromIndex()->showOnExport(),
+        Text::make($this->translateKey('srKapelnik'), 'srKapelnik')->hideFromIndex()->showOnExport(),
+        Text::make($this->translateKey('srEndn'), 'srEndn')->hideFromIndex()->showOnExport(),
+        Text::make($this->translateKey('srEndv'), 'srEndv')->hideFromIndex()->showOnExport(),
+        Text::make($this->translateKey('mrSam35'), 'mrSam35')->hideFromIndex()->showOnExport(),
+        Text::make($this->translateKey('srSam70'), 'srSam70')->hideFromIndex()->showOnExport(),
+        Text::make($this->translateKey('srPack'), 'srPack')->hideFromIndex()->showOnExport(),
+        Text::make($this->translateKey('srIzospanAM'), 'srIzospanAM')->hideFromIndex()->showOnExport(),
+        Text::make($this->translateKey('srIzospanAM35'), 'srIzospanAM35')->hideFromIndex()->showOnExport(),
+        Text::make($this->translateKey('srLenta'), 'srLenta')->hideFromIndex()->showOnExport(),
+        Text::make($this->translateKey('srRokvul'), 'srRokvul')->hideFromIndex()->showOnExport(),
+        Text::make($this->translateKey('srIzospanB'), 'srIzospanB')->hideFromIndex()->showOnExport(),
+        Text::make($this->translateKey('srIzospanB35'), 'srIzospanB35')->hideFromIndex()->showOnExport(),
+        Text::make($this->translateKey('srPrimUgol'), 'srPrimUgol')->hideFromIndex()->showOnExport(),
+        Text::make($this->translateKey('srPrimNakl'), 'srPrimNakl')->hideFromIndex()->showOnExport(),
+        Text::make($this->translateKey('srUtep150'), 'srUtep150')->hideFromIndex()->showOnExport(),
+        Text::make($this->translateKey('srUtep200'), 'srUtep200')->hideFromIndex()->showOnExport(),
                 
             ]),
                 
             Panel::make('Кровля мягкая', [
                 
-            Text::make($this->translateKey('srCherep'), 'srCherep')->hideFromIndex(),
-            Text::make($this->translateKey('srKover'), 'srKover')->hideFromIndex(),
-            Text::make($this->translateKey('srKonK'), 'srKonK')->hideFromIndex(),
-            Text::make($this->translateKey('srMastika1'), 'srMastika1')->hideFromIndex(),
-            Text::make($this->translateKey('srMastika'), 'srMastika')->hideFromIndex(),
-            Text::make($this->translateKey('mrKon'), 'mrKon')->hideFromIndex(),
-            Text::make($this->translateKey('mrEndn'), 'mrEndn')->hideFromIndex(),
-            Text::make($this->translateKey('mrPlanVetr'), 'mrPlanVetr')->hideFromIndex(),
-            Text::make($this->translateKey('mrPlanKar'), 'mrPlanKar')->hideFromIndex(),
-            Text::make($this->translateKey('mrKapelnik'), 'mrKapelnik')->hideFromIndex(),
-            Text::make($this->translateKey('mrEndv'), 'mrEndv')->hideFromIndex(),
-            Text::make($this->translateKey('srGvozd'), 'srGvozd')->hideFromIndex(),
-            Text::make($this->translateKey('mrSam70'), 'mrSam70')->hideFromIndex(),
-            Text::make($this->translateKey('mrPack'), 'mrPack')->hideFromIndex(),
-            Text::make($this->translateKey('mrIzospanAM'), 'mrIzospanAM')->hideFromIndex(),
-            Text::make($this->translateKey('mrIzospanAM35'), 'mrIzospanAM35')->hideFromIndex(),
-            Text::make($this->translateKey('mrLenta'), 'mrLenta')->hideFromIndex(),
-            Text::make($this->translateKey('mrRokvul'), 'mrRokvul')->hideFromIndex(),
-            Text::make($this->translateKey('mrIzospanB'), 'mrIzospanB')->hideFromIndex(),
-            Text::make($this->translateKey('mrIzospanB35'), 'mrIzospanB35')->hideFromIndex(),
-            Text::make($this->translateKey('mrPrimUgol'), 'mrPrimUgol')->hideFromIndex(),
-            Text::make($this->translateKey('mrPrimNakl'), 'mrPrimNakl')->hideFromIndex(),
-            Text::make($this->translateKey('srOSB'), 'srOSB')->hideFromIndex(),
-            Text::make($this->translateKey('srAero'), 'srAero')->hideFromIndex(),
-            Text::make($this->translateKey('srAeroSkat'), 'srAeroSkat')->hideFromIndex(),
-            Text::make($this->translateKey('mrUtep200'), 'mrUtep200')->hideFromIndex(),
-            Text::make($this->translateKey('mrUtep150'), 'mrUtep150')->hideFromIndex(),
+            Text::make($this->translateKey('srCherep'), 'srCherep')->hideFromIndex()->showOnExport(),
+            Text::make($this->translateKey('srKover'), 'srKover')->hideFromIndex()->showOnExport(),
+            Text::make($this->translateKey('srKonK'), 'srKonK')->hideFromIndex()->showOnExport(),
+            Text::make($this->translateKey('srMastika1'), 'srMastika1')->hideFromIndex()->showOnExport(),
+            Text::make($this->translateKey('srMastika'), 'srMastika')->hideFromIndex()->showOnExport(),
+            Text::make($this->translateKey('mrKon'), 'mrKon')->hideFromIndex()->showOnExport(),
+            Text::make($this->translateKey('mrEndn'), 'mrEndn')->hideFromIndex()->showOnExport(),
+            Text::make($this->translateKey('mrPlanVetr'), 'mrPlanVetr')->hideFromIndex()->showOnExport(),
+            Text::make($this->translateKey('mrPlanKar'), 'mrPlanKar')->hideFromIndex()->showOnExport(),
+            Text::make($this->translateKey('mrKapelnik'), 'mrKapelnik')->hideFromIndex()->showOnExport(),
+            Text::make($this->translateKey('mrEndv'), 'mrEndv')->hideFromIndex()->showOnExport(),
+            Text::make($this->translateKey('srGvozd'), 'srGvozd')->hideFromIndex()->showOnExport(),
+            Text::make($this->translateKey('mrSam70'), 'mrSam70')->hideFromIndex()->showOnExport(),
+            Text::make($this->translateKey('mrPack'), 'mrPack')->hideFromIndex()->showOnExport(),
+            Text::make($this->translateKey('mrIzospanAM'), 'mrIzospanAM')->hideFromIndex()->showOnExport(),
+            Text::make($this->translateKey('mrIzospanAM35'), 'mrIzospanAM35')->hideFromIndex()->showOnExport(),
+            Text::make($this->translateKey('mrLenta'), 'mrLenta')->hideFromIndex()->showOnExport(),
+            Text::make($this->translateKey('mrRokvul'), 'mrRokvul')->hideFromIndex()->showOnExport(),
+            Text::make($this->translateKey('mrIzospanB'), 'mrIzospanB')->hideFromIndex()->showOnExport(),
+            Text::make($this->translateKey('mrIzospanB35'), 'mrIzospanB35')->hideFromIndex()->showOnExport(),
+            Text::make($this->translateKey('mrPrimUgol'), 'mrPrimUgol')->hideFromIndex()->showOnExport(),
+            Text::make($this->translateKey('mrPrimNakl'), 'mrPrimNakl')->hideFromIndex()->showOnExport(),
+            Text::make($this->translateKey('srOSB'), 'srOSB')->hideFromIndex()->showOnExport(),
+            Text::make($this->translateKey('srAero'), 'srAero')->hideFromIndex()->showOnExport(),
+            Text::make($this->translateKey('srAeroSkat'), 'srAeroSkat')->hideFromIndex()->showOnExport(),
+            Text::make($this->translateKey('mrUtep200'), 'mrUtep200')->hideFromIndex()->showOnExport(),
+            Text::make($this->translateKey('mrUtep150'), 'mrUtep150')->hideFromIndex()->showOnExport(),
             
             
                 
@@ -360,68 +416,68 @@ class Design extends Resource
                 
             Panel::make('Водосточка пластиковая', [
                 
-                Text::make(__($this->translateKey('pvPart1')), 'pvPart1')->hideFromIndex(),
-                Text::make(__($this->translateKey('pvPart2')), 'pvPart2')->hideFromIndex(),
-                Text::make(__($this->translateKey('pvPart3')), 'pvPart3')->hideFromIndex(),
-                Text::make(__($this->translateKey('pvPart4')), 'pvPart4')->hideFromIndex(),
-                Text::make(__($this->translateKey('pvPart5')), 'pvPart5')->hideFromIndex(),
-                Text::make(__($this->translateKey('pvPart6')), 'pvPart6')->hideFromIndex(),
-                Text::make(__($this->translateKey('pvPart7')), 'pvPart7')->hideFromIndex(),
-                Text::make(__($this->translateKey('pvPart8')), 'pvPart8')->hideFromIndex(),
-                Text::make(__($this->translateKey('pvPart9')), 'pvPart9')->hideFromIndex(),
-                Text::make(__($this->translateKey('pvPart10')), 'pvPart10')->hideFromIndex(),
-                Text::make(__($this->translateKey('pvPart11')), 'pvPart11')->hideFromIndex(),
-                Text::make(__($this->translateKey('pvPart12')), 'pvPart12')->hideFromIndex(),
-                Text::make(__($this->translateKey('pvPart13')), 'pvPart13')->hideFromIndex(),
+                Text::make(__($this->translateKey('pvPart1')), 'pvPart1')->hideFromIndex()->showOnExport(),
+                Text::make(__($this->translateKey('pvPart2')), 'pvPart2')->hideFromIndex()->showOnExport(),
+                Text::make(__($this->translateKey('pvPart3')), 'pvPart3')->hideFromIndex()->showOnExport(),
+                Text::make(__($this->translateKey('pvPart4')), 'pvPart4')->hideFromIndex()->showOnExport(),
+                Text::make(__($this->translateKey('pvPart5')), 'pvPart5')->hideFromIndex()->showOnExport(),
+                Text::make(__($this->translateKey('pvPart6')), 'pvPart6')->hideFromIndex()->showOnExport(),
+                Text::make(__($this->translateKey('pvPart7')), 'pvPart7')->hideFromIndex()->showOnExport(),
+                Text::make(__($this->translateKey('pvPart8')), 'pvPart8')->hideFromIndex()->showOnExport(),
+                Text::make(__($this->translateKey('pvPart9')), 'pvPart9')->hideFromIndex()->showOnExport(),
+                Text::make(__($this->translateKey('pvPart10')), 'pvPart10')->hideFromIndex()->showOnExport(),
+                Text::make(__($this->translateKey('pvPart11')), 'pvPart11')->hideFromIndex()->showOnExport(),
+                Text::make(__($this->translateKey('pvPart12')), 'pvPart12')->hideFromIndex()->showOnExport(),
+                Text::make(__($this->translateKey('pvPart13')), 'pvPart13')->hideFromIndex()->showOnExport(),
                 
                 
                 ]),
                 
             Panel::make('Водосточка металлическая', [
                 
-                Text::make(__($this->translateKey('mvPart1')), 'mvPart1')->hideFromIndex(),
-                Text::make(__($this->translateKey('mvPart2')), 'mvPart2')->hideFromIndex(),
-                Text::make(__($this->translateKey('mvPart3')), 'mvPart3')->hideFromIndex(),
-                Text::make(__($this->translateKey('mvPart4')), 'mvPart4')->hideFromIndex(),
-                Text::make(__($this->translateKey('mvPart5')), 'mvPart5')->hideFromIndex(),
-                Text::make(__($this->translateKey('mvPart6')), 'mvPart6')->hideFromIndex(),
-                Text::make(__($this->translateKey('mvPart7')), 'mvPart7')->hideFromIndex(),
-                Text::make(__($this->translateKey('mvPart8')), 'mvPart8')->hideFromIndex(),
-                Text::make(__($this->translateKey('mvPart9')), 'mvPart9')->hideFromIndex(),
-                Text::make(__($this->translateKey('mvPart10')), 'mvPart10')->hideFromIndex(),
-                Text::make(__($this->translateKey('mvPart12')), 'mvPart12')->hideFromIndex(),
-                Text::make(__($this->translateKey('mvPart11')), 'mvPart11')->hideFromIndex(),
-                Text::make(__($this->translateKey('mvPart13')), 'mvPart13')->hideFromIndex(),
+                Text::make(__($this->translateKey('mvPart1')), 'mvPart1')->hideFromIndex()->showOnExport(),
+                Text::make(__($this->translateKey('mvPart2')), 'mvPart2')->hideFromIndex()->showOnExport(),
+                Text::make(__($this->translateKey('mvPart3')), 'mvPart3')->hideFromIndex()->showOnExport(),
+                Text::make(__($this->translateKey('mvPart4')), 'mvPart4')->hideFromIndex()->showOnExport(),
+                Text::make(__($this->translateKey('mvPart5')), 'mvPart5')->hideFromIndex()->showOnExport(),
+                Text::make(__($this->translateKey('mvPart6')), 'mvPart6')->hideFromIndex()->showOnExport(),
+                Text::make(__($this->translateKey('mvPart7')), 'mvPart7')->hideFromIndex()->showOnExport(),
+                Text::make(__($this->translateKey('mvPart8')), 'mvPart8')->hideFromIndex()->showOnExport(),
+                Text::make(__($this->translateKey('mvPart9')), 'mvPart9')->hideFromIndex()->showOnExport(),
+                Text::make(__($this->translateKey('mvPart10')), 'mvPart10')->hideFromIndex()->showOnExport(),
+                Text::make(__($this->translateKey('mvPart12')), 'mvPart12')->hideFromIndex()->showOnExport(),
+                Text::make(__($this->translateKey('mvPart11')), 'mvPart11')->hideFromIndex()->showOnExport(),
+                Text::make(__($this->translateKey('mvPart13')), 'mvPart13')->hideFromIndex()->showOnExport(),
                 
                 ]),
                 
             Panel::make('Фундамент ленточный', [
                 
-                 Text::make($this->translateKey('lfLength'), 'lfLength')->hideFromIndex(),
-                Text::make($this->translateKey('lfAngleG'), 'lfAngleG')->hideFromIndex(),
-                Text::make($this->translateKey('lfAngleT'), 'lfAngleT')->hideFromIndex(),
-                Text::make($this->translateKey('lfAngleX'), 'lfAngleX')->hideFromIndex(),
-                Text::make($this->translateKey('lfAngle45'), 'lfAngle45')->hideFromIndex(),
+                 Text::make($this->translateKey('lfLength'), 'lfLength')->hideFromIndex()->showOnExport(),
+                Text::make($this->translateKey('lfAngleG'), 'lfAngleG')->hideFromIndex()->showOnExport(),
+                Text::make($this->translateKey('lfAngleT'), 'lfAngleT')->hideFromIndex()->showOnExport(),
+                Text::make($this->translateKey('lfAngleX'), 'lfAngleX')->hideFromIndex()->showOnExport(),
+                Text::make($this->translateKey('lfAngle45'), 'lfAngle45')->hideFromIndex()->showOnExport(),
                 
                 ]),
                 
             Panel::make('Фундамент винтовой/жб', [
                 
-                Text::make($this->translateKey('vfLength'), 'vfLength')->hideFromIndex(),
-                Text::make($this->translateKey('vfCount'), 'vfCount')->hideFromIndex(),
-                Text::make($this->translateKey('vfBalk'), 'vfBalk')->hideFromIndex(),
+                Text::make($this->translateKey('vfLength'), 'vfLength')->hideFromIndex()->showOnExport(),
+                Text::make($this->translateKey('vfCount'), 'vfCount')->hideFromIndex()->showOnExport(),
+                Text::make($this->translateKey('vfBalk'), 'vfBalk')->hideFromIndex()->showOnExport(),
                 
                 ]),
                 
             Panel::make('Фундамент монолитная плита', [
                 
-                 Text::make($this->translateKey('mfSquare'), 'mfSquare')->hideFromIndex(),
+                 Text::make($this->translateKey('mfSquare'), 'mfSquare')->hideFromIndex()->showOnExport(),
                 
                 ]),
                 
             Panel::make('Изображения', [
                 Images::make('Изображения', 'images') // second parameter is the media collection name
-            ->conversionOnIndexView('thumb')
+            ->conversionOnIndexView('thumb'),
         /*    ->withMeta(['extraAttributes' => [
         'fileInfo' => [
             'name' => function ($value, $disk, $resource) {
@@ -458,15 +514,17 @@ class Design extends Resource
 "prefix" => "",
 "price" => "",
 "materialType" => "Тип материала",
-"floors" => "Брев",
+"floors" => "Этаж",
 "baseType" => "Этажность",
 "roofType" => "Тип Крыши",
 "roofSquare" => "S крыши",
+"quantity" => "Кол-во",
 "mainSquare" => "Фундамент м.пог",
 "baseLength" => "База ОЦБ 200 раб",
 "baseD20" => "База ОЦБ 200 с отходом",
 "baseD20F" => "База рубленное 200 раб",
 "baseD20Rub" => "База рубленное 200 с отходом",
+'roomTypes' => 'Тип',
 "baseD20RubF" => "База брус 145x140 раб",
 "baseBalk1" => "База брус 145x140 с отходом",
 "baseBalkF" => "База брус 145x140 раб",
@@ -497,6 +555,7 @@ class Design extends Resource
 "mrEndv" => "Ендова шт",
 "stropLabel" => "Стропила",
 "mrSam70" => "Саморез 70 уп",
+"floorsList" => "Помещения",
 "mrPack" => "Упаковка шт",
 "mrIzospanAM" => "Изоспан АМ 70м2, шт",
 "mrIzospanAM35" => "Изоспан АМ 35м2, шт",

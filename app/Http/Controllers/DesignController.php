@@ -50,6 +50,23 @@ class DesignController extends Controller
         return $response;
     }
     
+    public function getHeaders() {
+        $designs = Design::first();
+
+        // Get the original column names
+        $originalHeader = [];
+        foreach ($designs->first()->getAttributes() as $column => $value) {
+            $originalHeader[] = $column;
+        }
+    
+        // Translate and add the headers
+        $headerRow = [];
+        foreach ($originalHeader as $column) {
+            $headerRow[] = $this->translateKey($column); // Replace with your translation logic
+            }
+        return $headerRow;
+    }
+    
     public function exportAll()
 {
     
