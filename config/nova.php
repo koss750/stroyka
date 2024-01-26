@@ -204,7 +204,7 @@ return [
     ],
 
     'brand' => [
-	        'logo' => resource_path('vendor/nova/nova-logo.png'),
+	        'logo' => resource_path('vendor/nova/logo.svg'),
 
 		    // ...
 		],

@@ -19,15 +19,17 @@
         "laravel/nova": "~4.0",
         "laravel/sanctum": "^3.2",
         "laravel/tinker": "^2.8",
+        "maatwebsite/excel": "^3.1",
         "maatwebsite/laravel-nova-excel": "^1.3",
         "outl1ne/nova-simple-repeatable": "^2.1",
+        "phpoffice/phpspreadsheet": "*",
         "rap2hpoutre/fast-excel": "^5.2",
+        "stroyka/exporttool": "@dev",
         "symfony/browser-kit": "^6.3",
         "twbs/bootstrap": "5.3.0",
+        "vanilo/framework": "^3.8",
         "vyuldashev/nova-permission": "^3.2",
-        "yassi/nova-nested-form": "^3.0",
-        "Strpyla/ExportTool": "@dev",
-        "Stroyka/ExportTool": "@dev"
+        "yassi/nova-nested-form": "^3.0"
     },
     "require-dev": {
         "fakerphp/faker": "^1.9.1",

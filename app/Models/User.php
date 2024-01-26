@@ -41,5 +41,28 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
+        'superadmin' => 'boolean',
+        'permissions' => 'array',
     ];
+    
+    // Example method to check if user has access to a Nova resource
+    public function hasAccessToNovaResource($resource)
+    {
+        if ($this->superadmin) {
+            return true;
+        }
+
+        // 'Orders' is accessible by default if no specific permissions are set
+        $defaultResources = ['Orders'];
+
+        // Get the list of resources the user has access to
+        $accessibleResources = $this->permissions ?? $defaultResources;
+
+        return in_array($resource, $accessibleResources);
+    }
+    
+    public function setPermissionsAttribute($value)
+    {
+        $this->attributes['permissions'] = json_encode(array_keys(array_filter($value)));
+    }
 }

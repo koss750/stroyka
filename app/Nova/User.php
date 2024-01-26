@@ -9,6 +9,8 @@ use Laravel\Nova\Fields\ID;
 use Laravel\Nova\Fields\Password;
 use Laravel\Nova\Fields\Text;
 use Laravel\Nova\Http\Requests\NovaRequest;
+use Laravel\Nova\Fields\Boolean;
+use Laravel\Nova\Fields\BooleanGroup;
 
 class User extends Resource
 {
@@ -62,6 +64,18 @@ class User extends Resource
                 ->onlyOnForms()
                 ->creationRules('required', Rules\Password::defaults())
                 ->updateRules('nullable', Rules\Password::defaults()),
+                
+            Boolean::make('Superadmin')
+                ->sortable()
+                ->rules('required', 'boolean'),
+
+            // Assuming you have a method on the User model that provides the array structure for the permissions
+            BooleanGroup::make('Permissions', 'permissions')
+                ->options([
+                    'Designs' => 'Design Model',
+                    // Add other resources as necessary
+                ])
+                ->hideFromIndex(),
         ];
     }
 

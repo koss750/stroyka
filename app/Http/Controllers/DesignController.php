@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
 
+
 class DesignController extends Controller
 {
     /**
@@ -55,9 +56,14 @@ class DesignController extends Controller
 
         // Get the original column names
         $originalHeader = [];
+    
         foreach ($designs->first()->getAttributes() as $column => $value) {
-            $originalHeader[] = $column;
+            $exceptions = ['category'];
+            if (!in_array($column, $exceptions)) {
+                $originalHeader[] = $column;
+            }
         }
+        
     
         // Translate and add the headers
         $headerRow = [];
@@ -85,7 +91,7 @@ class DesignController extends Controller
 </head>
 <body>';
     // Define the JSON fields
-    $jsonFields = ['floorsList', 'metaList', 'stropList', 'skatList', 'endovList'];
+    $jsonFields = ['category', 'floorsList', 'metaList', 'stropList', 'skatList', 'endovList'];
 
     // Retrieve all designs from the database
     $designs = Design::all();
@@ -217,12 +223,11 @@ $html .= '<thead class="thead-dark">';
         
         // Create a new Design instance
         $design = new Design();
-        $design->title = $title;
+        //$design->title = $title;
         $design->pvPart1 = $serializePv;
         $design->mvPart1 = $serializeMv;
         $design->Meta = $serializeMeta;
-        
-
+        $design->title = "avd";
         // Save the design to the database
         $design->save();
         
@@ -244,7 +249,6 @@ $html .= '<thead class="thead-dark">';
     {
         /*Validate and process the request data*/
         $validatedData = $request->validate([
-            'title' => 'required|string',
             'category' => 'required|string',
             'size' => 'required|string',
             'length' => 'required|string',
@@ -253,22 +257,8 @@ $html .= '<thead class="thead-dark">';
             'numOrders' => 'required|integer',
             // ... Add validation rules for other properties ...
         ]);
-
         // Create a new design instance
         $design = Design::create($validatedData);
-
-        // Process and save rooms data
-        if ($request->has('rooms')) {
-            $roomsData = $request->input('rooms');
-            $rooms = [];
-
-            foreach ($roomsData as $roomData) {
-                $room = new Room($roomData);
-                $rooms[] = $room;
-            }
-
-            $design->rooms()->saveMany($rooms);
-        }
 
         // Redirect or return a response as needed
         return redirect()->back()->with('success', 'Design saved successfully!');
@@ -315,6 +305,85 @@ $html .= '<thead class="thead-dark">';
     {
         //
     }
+    
+    public function getDemoDesigns($category,$limit)
+    {
+        $designs = Design::where('category', $category)
+                         ->take($limit)
+                         ->get()
+                         ->map(function ($design) {
+                             return $this->transformDesign($design);
+                         });
+
+        return response()->json($designs);
+    }
+    
+    public function getList(Request $request)
+    {
+        $query = Design::query();
+
+        // Handling 'size' filter separately
+        if ($request->has('size')) {
+            $query->where('size', '>', $request->input('size'));
+        }
+
+        // Handling other filters based on column names
+        $filters = ['df_cat', 'floors', 'baseType', 'id', 'title'];
+        foreach ($filters as $filter) {
+            if ($request->has($filter)) {
+                $query->where($filter, $request->input($filter));
+            }
+        }
+
+        $designs = $query
+                        ->get()
+                        ->map(function ($design) {
+                             return $this->transformDesign($design);
+                         });
+
+        return response()->json($designs);
+    }
+    
+    
+    
+    
+    public function countRooms($design)
+{
+    // Check if floorsList is already an array
+    if (is_array($design->floorsList)) {
+        // Count only the first level elements
+        return count(array_filter($design->floorsList, 'is_array'));
+    }
+
+    // Check if floorsList is a JSON string and decode it
+    if (is_string($design->floorsList)) {
+        $floorsList = json_decode($design->floorsList, true);
+        if (is_array($floorsList)) {
+            return count(array_filter($design->floorsList, 'is_array'));
+        }
+    }
+}
+
+    private function transformDesign($design, $lang = 'ru-ru')
+    {
+        if ($lang === 'ru-ru') {
+            $design->main_category = $this->translateKey($design->category[0]["category"]);
+            $design->rooms = $this->translateKey($design->rooms);
+        }
+        
+        //$design->image_url = "storage/1/conversions/WhatsApp-Image-2023-12-15-at-15.09.55-(2)-mild.jpg";
+        
+        $design->rooms = $this->countRooms($design);
+        
+        $design->setImages($design);
+        $design->setPrice($design);
+        //$design->setMainCategory($design);
+
+        return $design;
+    }
+    
+
+
     
     public function translateKey ($key) {
         

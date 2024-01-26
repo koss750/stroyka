@@ -2,27 +2,26 @@
 
 namespace App\Nova;
 
-use Illuminate\Http\Request;
 use Laravel\Nova\Fields\ID;
 use Laravel\Nova\Fields\Text;
-use Laravel\Nova\Fields\Number;
+use Laravel\Nova\Fields\Textarea;
 use Laravel\Nova\Http\Requests\NovaRequest;
 
-class Material extends Resource
+class DesignMaterial extends Resource
 {
     /**
      * The model the resource corresponds to.
      *
-     * @var class-string<\App\Models\Material>
+     * @var string
      */
-    public static $model = \App\Models\Material::class;
+    public static $model = \App\Models\DesignMaterial::class;
 
     /**
      * The single value that should be used to represent the resource when being displayed.
      *
      * @var string
      */
-    public static $title = 'id';
+    public static $title = 'title';
 
     /**
      * The columns that should be searched.
@@ -30,8 +29,13 @@ class Material extends Resource
      * @var array
      */
     public static $search = [
-        'id',
+        'id', 'title', 'subsection', 'description'
     ];
+    
+    public static function label()
+    {
+        return 'Опции проектов';
+    }
 
     /**
      * Get the fields displayed by the resource.
@@ -41,21 +45,32 @@ class Material extends Resource
      */
     public function fields(NovaRequest $request)
     {
-	    return [
-		            ID::make(__('ID'), 'id')->sortable(),
+        return [
+            ID::make()->sortable(),
 
-			            Text::make('Type')
-				                ->sortable(),
+            Text::make('Title')
+                ->sortable()
+                ->rules('required', 'max:255'),
 
-					        Text::make('Title')
-						            ->sortable(),
+            Text::make('Subsection')
+                ->sortable()
+                ->nullable()
+                ->rules('nullable', 'max:255'),
 
-						            Number::make('Price')
-							                ->sortable(),
+            Textarea::make('Description')
+                ->nullable()
+                ->rules('nullable', 'max:1000'),
 
-								        Text::make('Spare')
-									            ->sortable(),
-									        ];
+            // You can include other fields like created_at and updated_at if you want them to be visible
+            // If you decide to show them, you can make them read-only and only visible on the detail view:
+            /*
+            DateTime::make('Created At')
+                ->onlyOnDetail(),
+
+            DateTime::make('Updated At')
+                ->onlyOnDetail(),
+            */
+        ];
     }
 
     /**
